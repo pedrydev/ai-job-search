@@ -3,8 +3,8 @@
 
 Run from anywhere: python tools/security_guards.py
 
-This repo ships pre-approved Claude Code permissions and CLI code that every
-fork user executes. These guards make the dangerous changes LOUD, not
+This repo ships pre-approved Claude Code and opencode permissions and CLI code
+that every fork user executes. These guards make the dangerous changes LOUD, not
 impossible: a PR that intentionally needs one of them must update the
 allowlists in this file in the same diff, so the change is explicit and
 reviewable rather than buried.
@@ -16,11 +16,16 @@ Checks:
    key is held to an allowlist too: a hook runs automatically when its event
    fires, with no prompt, so it is strictly more dangerous than a pre-approved
    permission.
-2. .gitignore — the personal-data ignore rules must all still be present,
+2. opencode.json — the Bash rules mirror `.claude/settings.json`, so every
+   permission.bash rule must derive from the same allowlist below (Claude Code
+   "Bash(<cmd>:*)" maps to the opencode glob "<cmd>:*"), and permission.skill
+   is held to the in-tree skill names, so the two permission files cannot
+   drift apart.
+3. .gitignore — the personal-data ignore rules must all still be present,
    and no un-allowlisted negation (!pattern) may re-include them. Catches
    weakening that would make future users silently commit their tracker,
    profile exports, or application archives.
-3. .agents/**/package.json — no npm/bun lifecycle scripts (preinstall,
+4. .agents/**/package.json — no npm/bun lifecycle scripts (preinstall,
    install, postinstall, prepare, prepack) and no trustedDependencies.
    Catches code execution smuggled into `bun install`.
 
@@ -36,13 +41,16 @@ errors: list[str] = []
 
 # The exact permission entries the template ships. A PR that adds or changes
 # an entry must add it here too - that is the point: the diff shows both.
+# Same-repo mirror: the opencode bash rules are derived from these entries
+# (OPENCODE_BASH_ALLOWLIST below) and checked against opencode.json, so the
+# two permission files share this single source of truth.
 ALLOWED_PERMISSIONS = {
     "Skill(job-application-assistant)",
     # Narrowed from the upstream template's blanket Bash(bun run:*), which
     # pre-approved `bun run <any file>`. One entry per shipped portal CLI,
     # matching what each SKILL.md already declares in its allowed-tools.
-    # A portal added by /add-portal needs its own entry here and in
-    # .claude/settings.json - that review step is the point.
+    # A portal added by /add-portal needs its own entry here, in
+    # .claude/settings.json, and in opencode.json - that review step is the point.
     "Bash(bun run .agents/skills/jobbank-search/cli/src/cli.ts:*)",
     "Bash(bun run .agents/skills/jobdanmark-search/cli/src/cli.ts:*)",
     "Bash(bun run .agents/skills/jobindex-search/cli/src/cli.ts:*)",
@@ -138,6 +146,18 @@ ALLOWED_IGNORE_NEGATIONS = {
 ALLOWED_HOOKS: set[str] = set()
 
 FORBIDDEN_SCRIPTS = {"preinstall", "install", "postinstall", "prepare", "prepack"}
+
+# opencode's permission.bash rules mirror the Claude Code "Bash(<cmd>:*)"
+# entries above; strip the tool wrapper to get the opencode glob. Held to this
+# derivation so the two files cannot drift apart.
+OPENCODE_BASH_ALLOWLIST = {
+    entry[5:-1] for entry in ALLOWED_PERMISSIONS if entry.startswith("Bash(")
+}
+
+# The in-tree skills opencode pre-allows. Skill access alone runs no commands
+# (a skill only selects a prompt/workflow), but holding the set keeps the
+# permission file explicit. A new in-tree skill needs its own entry here.
+ALLOWED_OPENCODE_SKILL_KEYS = {"job-application-assistant", "job-scraper"}
 
 
 def _hook_commands(event: str, entries: object):
@@ -276,8 +296,51 @@ def check_package_manifests() -> None:
             )
 
 
+def check_opencode_permissions() -> None:
+    path = ROOT / "opencode.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        errors.append(f"opencode.json: unreadable or invalid JSON: {exc}")
+        return
+    if not isinstance(data, dict):
+        errors.append("opencode.json: top-level JSON value must be an object")
+        return
+    permissions = data.get("permission", {})
+    if not isinstance(permissions, dict):
+        errors.append("opencode.json: permission must be an object")
+        return
+
+    bash = permissions.get("bash", {})
+    if not isinstance(bash, dict):
+        errors.append("opencode.json: permission.bash must be an object")
+    else:
+        for rule in bash:
+            if rule not in OPENCODE_BASH_ALLOWLIST:
+                errors.append(
+                    f"opencode.json: bash rule not in the reviewed allowlist: {rule!r}. "
+                    "It mirrors .claude/settings.json; if this entry is intentional, add the "
+                    "equivalent Claude Code permission to ALLOWED_PERMISSIONS in "
+                    "tools/security_guards.py in the same PR so the widening is explicit and "
+                    "reviewable."
+                )
+
+    skill = permissions.get("skill", {})
+    if not isinstance(skill, dict):
+        errors.append("opencode.json: permission.skill must be an object")
+    else:
+        for key in skill:
+            if key not in ALLOWED_OPENCODE_SKILL_KEYS:
+                errors.append(
+                    f"opencode.json: skill rule not in the reviewed allowlist: {key!r}. "
+                    "Only in-tree skills are pre-allowed; add an intentional entry to "
+                    "ALLOWED_OPENCODE_SKILL_KEYS in tools/security_guards.py in the same PR."
+                )
+
+
 def main() -> int:
     check_permissions()
+    check_opencode_permissions()
     check_gitignore()
     check_package_manifests()
     if errors:
@@ -286,8 +349,8 @@ def main() -> int:
             print(f"  - {err}")
         return 1
     print(
-        "security_guards: OK (permissions allowlist, hooks allowlist, gitignore rules, "
-        "package manifests)"
+        "security_guards: OK (permissions allowlists for Claude Code and opencode, hooks "
+        "allowlist, gitignore rules, package manifests)"
     )
     return 0
 

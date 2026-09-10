@@ -8,7 +8,7 @@ Follow these steps **exactly in order**. Do not skip steps.
 
 This is not bookkeeping. A fact that exists only in chat **will be treated as unsupported by a later session and stripped from drafts as a fabrication.** Anything absent from the sources does not exist as far as future drafting is concerned, and the loss is silent — a real achievement quietly disappears from every subsequent CV.
 
-This rule is the input side of the Step 3 Factual Grounding Audit, not a competitor to it. The audit is deliberately strict: an ungrounded claim is removed, and it cannot tell a fabrication from a real fact the user stated out loud last week. That strictness is correct, and it is exactly why confirmed facts have to reach the sources in the same turn they surface. Write to `01-candidate-profile.md` specifically — it is one of the audit's three sources, so a fact recorded there is grounded on the next run. Adding a fact to `01` that `CLAUDE.md` and the master CV simply do not mention is an absence, not a contradiction, and does not trip the audit's profile-consistency warning; if the new fact *corrects* something either of those states, fix it there too rather than leaving the two sources disagreeing.
+This rule is the input side of the Step 3 Factual Grounding Audit, not a competitor to it. The audit is deliberately strict: an ungrounded claim is removed, and it cannot tell a fabrication from a real fact the user stated out loud last week. That strictness is correct, and it is exactly why confirmed facts have to reach the sources in the same turn they surface. Write to `01-candidate-profile.md` specifically — it is one of the audit's three sources, so a fact recorded there is grounded on the next run. Adding a fact to `01` that `AGENTS.md` (the workspace profile file, read by Claude Code and opencode alike) and the master CV simply do not mention is an absence, not a contradiction, and does not trip the audit's profile-consistency warning; if the new fact *corrects* something either of those states, fix it there too rather than leaving the two sources disagreeing.
 
 **Token-efficiency rules for this workflow:**
 - Never re-Read a file whose contents are already in your context from an earlier step. If you read it in Step 1, it is still available in Step 2.
@@ -74,7 +74,7 @@ Also read the most recent existing CV and cover letter files for concrete struct
 - Read any existing `cv/main_*<CV_EXT>` file as a structural reference
 - Read any existing `cover_letters/cover_*<COVER_EXT>` or `cover_letters/Cover_*<COVER_EXT>` file as a structural reference
 
-*The master candidate profile (`01-candidate-profile.md`), the master CV (`cv/main_example.tex`), and CLAUDE.md's Candidate Profile section are the sole source of truth for facts; existing tailored CVs may be read for structure and phrasing only, never as a source of claims.*
+*The master candidate profile (`01-candidate-profile.md`), the master CV (`cv/main_example.tex`), and AGENTS.md's Candidate Profile section are the sole source of truth for facts; existing tailored CVs may be read for structure and phrasing only, never as a source of claims. (`CLAUDE.md` no longer exists in this workspace — its profile content lives in AGENTS.md.)*
 
 ### Requirement coverage (both documents)
 - **Every requirement the posting states gets addressed - matched or honestly gapped, never silently omitted.** A stated requirement the candidate lacks (a tool, a clearance, years of experience) is acknowledged with an honest bridge ("not in my daily toolkit yet; a natural extension of X"), because omission reads as hiding once an interviewer asks. Build the requirement list from Step 1 and check both drafts against it before Step 3.
@@ -84,12 +84,12 @@ Also read the most recent existing CV and cover letter files for concrete struct
 *In both filenames below, `<company>_<role>` is derived by the **Subfolder naming** rule in `documents/README.md` — the same rule `/outcome` Step 1.4 uses for the archive folder, so a `/` or other path character in a company or role name can never split the filename across directories.*
 
 ### CV (`cv/main_<company>_<role><CV_EXT>`)
-- In the **CV language from the profile** (the `CV language:` line in CLAUDE.md's Identity section). When the profile does not set one, default to **English**. Never switch language per posting - the CV language is a profile-level choice, so all CVs stay consistent and reusable
+- In the **CV language from the profile** (the `CV language:` line in AGENTS.md's Identity section). When the profile does not set one, default to **English**. Never switch language per posting - the CV language is a profile-level choice, so all CVs stay consistent and reusable
 - Follow the moderncv/banking format from `05-cv-templates.md`
 - Tailor the profile statement and experience bullets to the specific role
 - Reframe skills and achievements to match job requirements
 - Keep to 2 pages
-- **Grounding Audit:** Before writing to disk, audit all tailored bullet points against the union of three sources: `.claude/skills/job-application-assistant/01-candidate-profile.md` + the master CV (`cv/main_example.tex`) + `CLAUDE.md`'s Candidate Profile section to verify that all dates, roles, and metrics match exactly (zero profile drift or fabrication).
+- **Grounding Audit:** Before writing to disk, audit all tailored bullet points against the union of three sources: `.claude/skills/job-application-assistant/01-candidate-profile.md` + the master CV (`cv/main_example.tex`) + `AGENTS.md`'s Candidate Profile section to verify that all dates, roles, and metrics match exactly (zero profile drift or fabrication).
 
 ### Cover Letter (`cover_letters/cover_<company>_<role><COVER_EXT>`)
 - **Match the language of the job posting** (Danish posting -> Danish cover letter, English posting -> English cover letter)
@@ -106,7 +106,7 @@ Write both files to disk. Keep the exact text of both drafts in working memory �
 
 ## Step 3: REVIEWER - Research & Critique
 
-Use the **Agent tool** to spawn a `general-purpose` reviewer agent. The reviewer gets a fresh context, so pass the drafts **inline in the prompt** below (do not make the reviewer Read them). Scope the reviewer's file reads to content-critique essentials only — the reviewer does not need the template structure files (`05`, `06`) to critique content, since those govern structural/toolchain concerns the drafter already applied.
+Use the **subagent tool** to spawn a `general-purpose` reviewer agent with a fresh context (Claude Code: Agent tool; opencode: Task tool with `subagent_type: general`). Pass the drafts **inline in the prompt** below (do not make the reviewer Read them). Scope the reviewer's file reads to content-critique essentials only — the reviewer does not need the template structure files (`05`, `06`) to critique content, since those govern structural/toolchain concerns the drafter already applied.
 
 Replace `<COMPANY>`, `<ROLE>`, `<INSERT_JOB_POSTING_TEXT_HERE>`, `<INSERT_CV_DRAFT_HERE>`, and `<INSERT_COVER_LETTER_DRAFT_HERE>` with actual values before dispatching.
 
@@ -136,12 +136,12 @@ Read these reference files — and only these — to ground your critique:
 - `.claude/skills/job-application-assistant/03-writing-style.md`
 - `.claude/skills/job-application-assistant/04-job-evaluation.md`
 - The master CV baseline template (`cv/main_example.tex`)
-- The workspace root `CLAUDE.md` file (specifically the Candidate Profile section)
+- The workspace root `AGENTS.md` file (specifically the Candidate Profile section)
 
 Do NOT read `05-cv-templates.md` or `06-cover-letter-templates.md` — those govern template structure the drafter already applied and are not needed for content critique.
 
 ### 3. Factual Grounding Audit
-Compare every date, employer, job title, and quantitative metric in both drafts against the union of three sources: `.claude/skills/job-application-assistant/01-candidate-profile.md` + the master CV baseline template (`cv/main_example.tex`) + `CLAUDE.md`'s Candidate Profile section. A claim is grounded if ANY of these sources supports it. Mismatches between these three sources themselves must be reported to the user as a profile-consistency warning rather than treated as draft drift. Draft mismatches must be flagged as Part A edits with `"reason": "grounding"` so they can be distinguished from style changes. Keep the tolerance honest: reframed emphasis is fine; changed facts and escalated numbers are not.
+Compare every date, employer, job title, and quantitative metric in both drafts against the union of three sources: `.claude/skills/job-application-assistant/01-candidate-profile.md` + the master CV baseline template (`cv/main_example.tex`) + `AGENTS.md`'s Candidate Profile section. A claim is grounded if ANY of these sources supports it. Mismatches between these three sources themselves must be reported to the user as a profile-consistency warning rather than treated as draft drift. Draft mismatches must be flagged as Part A edits with `"reason": "grounding"` so they can be distinguished from style changes. Keep the tolerance honest: reframed emphasis is fine; changed facts and escalated numbers are not.
 
 ### 4. Drafts to Review
 Both drafts are provided inline below. Do NOT use the Read tool on the draft files — use these exact texts.
@@ -321,10 +321,10 @@ After the final clean compile, delete intermediate build files the compile comma
 
 ## Step 6: Present Final Output
 
-Run the full verification checklist from `CLAUDE.md` now — this is the **only** verification pass in the workflow. Re-read both files once here to verify final state on disk matches your mental model after the Step 4 and Step 5 edits.
+Run the full verification checklist from `AGENTS.md` now — this is the **only** verification pass in the workflow. Re-read both files once here to verify final state on disk matches your mental model after the Step 4 and Step 5 edits.
 
 ### Verification Checklist
-Report pass/fail for each item in the CLAUDE.md verification checklist (factual accuracy, targeting, consistency, quality).
+Report pass/fail for each item in the AGENTS.md verification checklist (factual accuracy, targeting, consistency, quality).
 
 ### Key Tailoring Decisions
 Summarize 3-5 key decisions made to tailor the application:

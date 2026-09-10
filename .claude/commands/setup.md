@@ -242,7 +242,7 @@ Documents cover skills, experience, education, references, and behavioral signal
 - Commute or location constraints (if not visible from CV)
 - Job search configuration (use the questions from Path C Section 9 below)
 
-Then proceed to Step 3 to populate the non-skill files (`CLAUDE.md`, `cv/main_example.tex`, `.claude/skills/job-scraper/search-queries.md`). Step 3 will detect that the seven skill files are already populated and skip those substeps.
+Then proceed to Step 3 to populate the non-skill files (`AGENTS.md`, `cv/main_example.tex`, `.claude/skills/job-scraper/search-queries.md`). Step 3 will detect that the seven skill files are already populated and skip those substeps.
 
 ---
 
@@ -334,7 +334,7 @@ Ask about:
 - **Target companies (optional):** "Are there specific companies you'd like to monitor for openings?"
 - **Geographic scope:** "Which cities or regions should I search in? How far are you willing to commute?" Use this to define the location filter tiers (ideal, acceptable, borderline, too far).
 - **Job portals:** "The framework ships country-agnostic search CLIs (`linkedin-search`, `freehire-search`, enabled by default) plus Danish portal demos (Jobindex, Jobbank, Jobdanmark, Jobnet) that ship **disabled**. `/scrape` auto-discovers whatever portal skills are installed under `.agents/skills/` and skips any with `enabled: false`. Which portals fit your market?" **Then act on the answer:** if the user's market is Denmark (or they ask for the Danish boards), edit each of the four Danish `SKILL.md` files and set `enabled: true` in the frontmatter; otherwise leave them disabled and say so - they cost nothing while disabled and can be enabled later by flipping the flag. If the user needs a local board that is not shipped, guide them to `/add-portal` (market-specific skills live in their fork). WebSearch/`site:` queries remain the fallback for portals without a CLI skill.
-- **CV language:** "Should your CVs be written in English (the default, accepted in most markets), or in your market's language?" Record the answer as a `CV language: <language>` line in CLAUDE.md's Identity section. Cover letters always match each posting's language automatically; this setting governs the CV only. If the user is unsure, keep English and note they can re-run `/setup --section search` to change it.
+- **CV language:** "Should your CVs be written in English (the default, accepted in most markets), or in your market's language?" Record the answer as a `CV language: <language>` line in AGENTS.md's Identity section. Cover letters always match each posting's language automatically; this setting governs the CV only. If the user is unsure, keep English and note they can re-run `/setup --section search` to change it.
 
 **Important:** Also suggest role types the user may not have considered, based on their skill profile. For example:
 - If they have strong Python + domain expertise: "Have you considered roles like 'Technical Consultant' or 'Solutions Engineer' in your domain?"
@@ -349,8 +349,8 @@ This proactive suggestion step helps users discover career paths they might not 
 
 Once data collection is complete, generate or finish populating the following files. **For Path A**, the seven skill files are already populated by Step A7; check each before writing and skip if its content is no longer placeholder text.
 
-### 1. Update `CLAUDE.md`
-Replace all `[PLACEHOLDER]` tokens with the user's actual information. Keep the structure, workflow, and verification checklist intact.
+### 1. Update `AGENTS.md`
+Replace all `[PLACEHOLDER]` tokens in the Candidate Profile section with the user's actual information. Keep the structure, workflow, and verification checklist intact.
 
 ### 2. Populate `01-candidate-profile.md` *(Path B and C; skip if Path A populated it)*
 Write the full candidate profile with structured sections: Identity (including Languages, with levels), Education, Professional Experience, Independent Projects, Technical Skills, Publications, Awards, References.
@@ -398,7 +398,7 @@ Present a summary:
 
 > **Setup complete!** Here's what was generated:
 >
-> - `CLAUDE.md` - Your full candidate profile
+> - `AGENTS.md` - Your full candidate profile + workflow rules (the file every agent runtime reads)
 > - `.claude/skills/job-application-assistant/01-candidate-profile.md` - Structured profile
 > - `.claude/skills/job-application-assistant/02-behavioral-profile.md` - Behavioral assessment
 > - `.claude/skills/job-application-assistant/04-job-evaluation.md` - Personalized evaluation framework

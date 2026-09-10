@@ -9,6 +9,8 @@ Checks:
 - `allowed-tools` entries of the form `Bash(bun run <path> *)` point at files
   that exist (skill paths resolve relative to the repo root and to .agents/)
 - Every .claude/commands/*.md starts with a `# /<name>` title
+- Every .opencode/command/*.md has valid YAML frontmatter with a non-empty
+  `description`, and the command name matches the filename
 - .claude/settings.json is valid JSON with a permissions.allow list
 
 Exit code 0 on success, 1 with a failure list otherwise.
@@ -77,6 +79,28 @@ def check_command(path: Path) -> None:
         errors.append(f"{rel(path)}: command file must start with a '# /<name>' title (found: {first[:50]!r})")
 
 
+def check_opencode_command(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    name = path.stem
+    if not text.startswith("---\n"):
+        errors.append(f"{rel(path)}: opencode command must start with YAML frontmatter (file must start with ---)")
+        return
+    end = text.find("\n---", 4)
+    if end == -1:
+        errors.append(f"{rel(path)}: unterminated YAML frontmatter")
+        return
+    try:
+        data = yaml.safe_load(text[4:end])
+    except yaml.YAMLError as exc:
+        errors.append(f"{rel(path)}: frontmatter is not valid YAML: {exc}")
+        return
+    if not isinstance(data, dict):
+        errors.append(f"{rel(path)}: frontmatter did not parse to a mapping")
+        return
+    if not data.get("description"):
+        errors.append(f"{rel(path)}: frontmatter missing required key 'description'")
+
+
 def check_settings() -> None:
     path = ROOT / ".claude" / "settings.json"
     try:
@@ -98,15 +122,20 @@ def check_settings() -> None:
 def main() -> int:
     skills = sorted(ROOT.glob(".claude/skills/*/SKILL.md")) + sorted(ROOT.glob(".agents/skills/*/SKILL.md"))
     commands = sorted((ROOT / ".claude" / "commands").glob("*.md"))
+    opencode_commands = sorted((ROOT / ".opencode" / "command").glob("*.md"))
     if not skills:
         errors.append("no SKILL.md files found - glob roots are wrong or the tree moved")
     if not commands:
         errors.append("no command files found under .claude/commands/")
+    if not opencode_commands:
+        errors.append("no command files found under .opencode/command/")
 
     for skill in skills:
         check_skill(skill)
     for command in commands:
         check_command(command)
+    for command in opencode_commands:
+        check_opencode_command(command)
     check_settings()
 
     if errors:
@@ -114,7 +143,10 @@ def main() -> int:
         for err in errors:
             print(f"  - {err}")
         return 1
-    print(f"lint_skills: OK ({len(skills)} skills, {len(commands)} commands, settings.json)")
+    print(
+        f"lint_skills: OK ({len(skills)} skills, {len(commands)} commands, "
+        f"{len(opencode_commands)} opencode commands, settings.json)"
+    )
     return 0
 
 

@@ -38,6 +38,7 @@ Before doing anything, show the user precisely what will be wiped.
 
 Read the current state of these files and report whether each has content or is already empty:
 
+- `AGENTS.md` *(Candidate Profile section only — the workspace profile; the workflow rules and verification checklist above it are preserved)*
 - `.claude/skills/job-application-assistant/01-candidate-profile.md`
 - `.claude/skills/job-application-assistant/02-behavioral-profile.md`
 - `.claude/skills/job-application-assistant/04-job-evaluation.md` *(personalized match areas, career goals, and life-situation constraints only — the scoring framework is preserved)*
@@ -52,6 +53,12 @@ Present as:
 
 ```
 ## Profile reset will clear:
+
+- AGENTS.md — [has a populated Candidate Profile / already placeholders]
+  The `## Candidate Profile` section (identity, education, experience, skills,
+  languages, behavioral profile, deal-breakers, etc.) is restored to its
+  `[PLACEHOLDER]` tokens. The Role, Workflow, and Verification Checklist
+  sections above it are preserved — they are framework, not candidate data.
 
 - 01-candidate-profile.md — [has content / already empty]
   Full file will be replaced with a blank template.
@@ -80,8 +87,7 @@ Present as:
 The following files are NOT touched (they contain framework rules, not candidate data):
   - 03-writing-style.md
 
-Outside the profile scope, still holding your personal data: CLAUDE.md and
-cv/main_example.tex. This scope covers skill files only.
+Outside the profile scope, still holding your personal data: `cv/main_example.tex`. This scope clears the skill files and AGENTS.md's Candidate Profile section only.
 ```
 
 ### If scope includes `documents`:
@@ -134,6 +140,18 @@ Wait for the user's response.
 ## Step 3: Execute the Reset
 
 ### Profile reset
+
+**For `AGENTS.md`**, restore the `## Candidate Profile` section's placeholder tokens. Only the personal-data values `/setup` Step 3.1 wrote are replaced — the section headings, comments, languages table structure, and every other framework line beneath/around them stay:
+
+- `[YOUR_NAME]`, `[YOUR_CITY]`, `[YOUR_COUNTRY]`, `[YOUR_COMMUTE_CONSTRAINTS]`, `[YOUR_EMPLOYMENT_STATUS]`, `[YOUR_LINKEDIN_HEADLINE]`, `[YOUR_CV_LANGUAGE]`
+- `[LANGUAGE]` / `[LEVEL]` rows in the Languages table
+- `[DEGREE_LEVEL]`, `[FIELD]`, `[YEAR_START]`, `[YEAR_END]`, `[INSTITUTION]`, `[THESIS_TITLE]`, `[KEY_TOPICS]`
+- `[JOB_TITLE]`, `[START_DATE]`, `[END_DATE]`, `[COMPANY]`, `[LOCATION]`, `[KEY_RESPONSIBILITY_N]`, `[KEY_ACHIEVEMENT]`
+- `[YOUR_PRIMARY_SKILLS]`, `[YOUR_SECONDARY_SKILLS]`, `[YOUR_DOMAIN_EXPERTISE]`, `[YOUR_TOOLS_AND_SOFTWARE]`
+- `[CERTIFICATION_NAME]`, `[HOURS]`, `[DATE]`, `[AUTHOR_LIST]`, `[YEAR]`, `[TITLE]`, `[JOURNAL]`, `[AWARD_NAME]`, `[EVENT]`
+- `[TRAIT_N]`, `[DESCRIPTION]`, `[YOUR_STRENGTHS]`, `[YOUR_GROWTH_AREAS]`, `[YOUR_IDEAL_ENVIRONMENT]`, `[PASSION_N]`, `[SECTOR_N]`, `[EXAMPLE_COMPANIES]`, `[DEALBREAKER_N]`
+
+Leave the Role, Workflow, and Verification Checklist sections intact. If `/setup` Step 3.1 ever personalizes a value not in the list above, add it here too.
 
 **For `01-candidate-profile.md`**, replace the file content with:
 
@@ -271,7 +289,7 @@ Then tell the user what to do next based on what was reset:
 **If profile was reset:**
 > The skill files are now blank. Run `/setup` to repopulate them. The command auto-detects any files in your `documents/` folder and offers to read from there; otherwise it walks you through a CV import or interactive interview.
 >
-> Note that `CLAUDE.md` and `cv/main_example.tex` are outside the `profile` scope and still hold your personal data. If you are handing this fork over or making it public, clear them by hand.
+> Note that `AGENTS.md`'s Candidate Profile section and `cv/main_example.tex` are now reset by `profile`, but if you are handing this fork over or making it public, clear them by hand too — double-check for any personal data outside the placeholders.
 
 **If documents were reset:**
 > The `documents/` folder is now empty. Add your career documents and run `/setup` to populate your profile. See `documents/README.md` for instructions on what to put where.

@@ -70,7 +70,7 @@ For each **enabled** portal skill:
 4. Cap results to ~20 per call using the portal's limit flag.
 5. Use `--format json` for machine-readable output.
 
-Run all portal CLI calls in parallel where possible using the Agent tool. Collect all `results` arrays into a single pool for Step 2, keeping each result tagged with its source portal skill (for Step 2 `detail` lookups).
+Run all portal CLI calls in parallel where possible by spawning parallel subagents (Claude Code: Agent tool; opencode: Task tool with `subagent_type: general`). Collect all `results` arrays into a single pool for Step 2, keeping each result tagged with its source portal skill (for Step 2 `detail` lookups).
 
 If a CLI tool exits with a non-zero code, log the error message and continue — do not abort the whole search.
 
@@ -137,7 +137,7 @@ For each new job, do a rapid fit check (NOT the full evaluation from `04-job-eva
 - **Medium match**: Role is adjacent to your experience
 - **Low match**: Role requires significant skills you lack
 
-**Language override:** before assigning a match level, check the posting against `04-job-evaluation.md`'s Language Gate (a required language you haven't declared at all in your CLAUDE.md Languages table). A required language that's entirely undeclared overrides skill fit: mark it **Low** regardless of how well the skills align, and name it in the highlight bullets so it isn't buried under an otherwise-good-looking match. A **declared** language at a requirement that reads higher than your declared level is *not* an override — score fit normally, but add a red-flag bullet under that job's highlights (Step 5) quoting the posting's requirement next to your declared level, so the gap is visible without being auto-downgraded.
+**Language override:** before assigning a match level, check the posting against `04-job-evaluation.md`'s Language Gate (a required language you haven't declared at all in your AGENTS.md Languages table). A required language that's entirely undeclared overrides skill fit: mark it **Low** regardless of how well the skills align, and name it in the highlight bullets so it isn't buried under an otherwise-good-looking match. A **declared** language at a requirement that reads higher than your declared level is *not* an override — score fit normally, but add a red-flag bullet under that job's highlights (Step 5) quoting the posting's requirement next to your declared level, so the gap is visible without being auto-downgraded.
 
 ### Step 4: Deduplicate & Store
 
